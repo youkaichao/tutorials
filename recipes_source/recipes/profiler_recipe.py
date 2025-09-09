@@ -452,6 +452,10 @@ my_schedule = schedule(skip_first=10, wait=5, warmup=1, active=3, repeat=2)
 # To send the signal to the profiler that the next step has started, call ``prof.step()`` function.
 # The current profiler step is stored in ``prof.step_num``.
 #
+# It's important to make sure all activities have finished (e.g. by calling
+# ``torch.accelerator.synchronize()`` to wait for all device jobs to finish) when calling
+# ``prof.step()``, so that activities can be correctly tracked into the corresponding phases.
+#
 # The following example shows how to use all of the concepts above for CUDA and XPU Kernels:
 
 sort_by_keyword = "self_" + device + "_time_total"
@@ -470,6 +474,7 @@ with profile(
 ) as p:
     for idx in range(8):
         model(inputs)
+        torch.accelerator.synchronize()
         p.step()
 
 ######################################################################
